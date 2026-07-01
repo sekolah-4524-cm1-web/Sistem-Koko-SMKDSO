@@ -370,4 +370,74 @@ elif pilihan == "📝 Daftar Murid Baru":
         st.subheader("🗑️ Padam Rekod Murid Keseluruhan")
         kp_padam = st.text_input("Masukkan No. KP murid untuk dipadam:", key="input_padam")
         
-        if st.button("🔴 Padam
+        if st.button("🔴 Padam Rekod Murid", key="butang_padam"):
+            if kp_padam:
+                c.execute("SELECT nama FROM murid WHERE kp = ?", (kp_padam,))
+                data_murid = c.fetchone()
+                if data_murid:
+                    nama_terpadam = data_murid[0]
+                    c.execute("DELETE FROM murid WHERE kp = ?", (kp_padam,))
+                    conn.commit()
+                    st.success(f"🗑️ Rekod murid {nama_terpadam} telah dipadam.")
+                else:
+                    st.error("❌ No. Kad Pengenalan tidak dijumpai.")
+            else:
+                st.warning("Sila masukkan No KP terlebih dahulu.")
+
+# ==========================================
+# MODUL 5: MAKLUMAT & URUS GURU PENASIHAT
+# ==========================================
+elif pilihan == "📋 Maklumat & Urus Guru":
+    st.title("📋 Pengurusan Guru Penasihat Unit")
+    tab1, tab2 = st.tabs(["🔍 Semak Guru Sedia Ada", "➕ Tambah / Kemaskini Guru & Unit"])
+    
+    with tab1:
+        st.subheader("📚 Senarai Guru Penasihat Semasa")
+        kat_guru = st.selectbox("Pilih Kategori Unit:", ["Kelab / Persatuan", "Sukan / Permainan", "Unit Beruniform", "Rumah Sukan"], key="semak_kat")
+        kat_map = {"Kelab / Persatuan": "kelab", "Sukan / Permainan": "sukan", "Unit Beruniform": "uniform", "Rumah Sukan": "rumah"}
+        db_kat = kat_map[kat_guru]
+        
+        df_guru = pd.read_sql_query("SELECT unit AS 'NAMA UNIT', nama_guru AS 'NAMA GURU PENASIHAT' FROM guru_penasihat WHERE kategori = ?", conn, params=(db_kat,))
+        if not df_guru.empty:
+            st.dataframe(df_guru, use_container_width=True)
+        else:
+            st.info("Tiada rekod didaftarkan untuk kategori ini.")
+            
+    with tab2:
+        st.subheader("⚙️ Borang Pendaftaran / Kemaskini Guru & Unit Baru")
+        with st.form("borang_guru"):
+            kategori_input = st.selectbox("Kategori Unit:", ["kelab", "sukan", "uniform", "rumah"])
+            unit_input = st.text_input("Nama Unit Baru / Sedia Ada (Contoh: Kelab Catur / Merah):")
+            guru_input = st.text_input("Nama Penuh Guru Penasihat:")
+            
+            butang_guru = st.form_submit_button("Simpan / Kemaskini Maklumat Guru")
+            if butang_guru:
+                if unit_input and guru_input:
+                    c.execute("""
+                        INSERT OR REPLACE INTO guru_penasihat (kategori, unit, nama_guru)
+                        VALUES (?, ?, ?)
+                    """, (kategori_input, unit_input, guru_input))
+                    conn.commit()
+                    st.success(f"✅ Maklumat bagi '{unit_input}' berjaya disimpan!")
+                    st.rerun()
+
+# ==========================================
+# MODUL 6: TAMBAH PENCAPAIAN
+# ==========================================
+elif pilihan == "🏅 Tambah Pencapaian":
+    st.title("🏅 Tambah Pencapaian Murid")
+    st.text_input("No. KP Murid:")
+    st.text_input("Nama Aktiviti/Pertandingan:")
+    st.selectbox("Tahap Pencapaian:", ["Sekolah", "Daerah", "Negeri", "Kebangsaan"])
+    st.button("Simpan Pencapaian")
+
+# ==========================================
+# FOOTER HAK MILIK
+# ==========================================
+st.markdown("<br><br><br>", unsafe_allow_html=True)
+st.markdown("---")
+st.markdown("""
+    <div style="text-align: center; color: #888888; font-size: 14px; padding: 20px 0;">
+        🔒 <b>Hak Milik Terpelihara &copy; Dr Mohd Zairol Yusoff</b>
+    </div>
+""", unsafe_allow_html=True)
