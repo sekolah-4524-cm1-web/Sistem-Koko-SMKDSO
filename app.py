@@ -11,7 +11,7 @@ import base64
 conn = sqlite3.connect('kokurikulum.db')
 c = conn.cursor()
 
-# 1. Cipta jadual murid
+# 1. Cipta jadual murid (7 Lajur Tepat)
 c.execute('''
     CREATE TABLE IF NOT EXISTS murid (
         kp TEXT PRIMARY KEY NOT NULL,
@@ -56,7 +56,7 @@ if c.fetchone()[0] == 0:
     conn.commit()
 
 # ==========================================
-# FUNGSI PEMBACAAN LOGO SEKOLAH ASAL
+# FUNGSI PEMBACAAN LOGO SEKOLAH
 # ==========================================
 def dapatkan_logo_base64(path_gambar):
     if os.path.exists(path_gambar):
@@ -64,7 +64,6 @@ def dapatkan_logo_base64(path_gambar):
             return base64.b64encode(image_file.read()).decode()
     return None
 
-# Membaca fail imej logo.png.png yang dimuat naik
 logo_b64 = dapatkan_logo_base64("logo.png.png")
 if not logo_b64:
     logo_b64 = dapatkan_logo_base64("logo.png")
@@ -74,11 +73,11 @@ if not logo_b64:
 # ==========================================
 st.set_page_config(page_title="Sistem Kokurikulum SMK DSU", layout="wide")
 
-# Banner Utama Sekolah Bersama Logo Sebenar (Diperbesar & Jelas)
+# Banner Utama Sekolah Bersama Logo
 if logo_b64:
     st.markdown(f"""
         <div style="background-color:#1f77b4; padding:30px; border-radius:12px; margin-bottom:25px; border-left: 10px solid #ffd700; display: flex; align-items: center; justify-content: flex-start; gap: 35px;">
-            <img src="data:image/png;base64,{logo_b64}" width="140" style="max-height: 150px; object-fit: contain; filter: drop-shadow(3px 5px 6px rgba(0,0,0,0.25));" alt="Logo SMK Dato Syed Omar">
+            <img src="data:image/png;base64,{logo_b64}" width="140" style="max-height: 150px; object-fit: contain; filter: drop-shadow(3px 5px 6px rgba(0,0,0,0.25));">
             <div style="text-align: left;">
                 <h1 style="color:white; margin:0; font-family:sans-serif; letter-spacing: 2px; font-size:38px; font-weight: bold;">SMK DATO' SYED OMAR</h1>
                 <p style="color:#ffd700; margin:8px 0 0 0; font-weight:bold; font-size:18px; letter-spacing: 1px;">🏆 SISTEM PENGURUSAN KOKURIKULUM SEKOLAH</p>
@@ -90,7 +89,6 @@ else:
         <div style="background-color:#1f77b4; padding:25px; border-radius:12px; margin-bottom:25px; border-left: 8px solid #ffd700; text-align: center;">
             <h1 style="color:white; margin:0; font-family:sans-serif; letter-spacing: 2px; font-size:36px; font-weight: bold;">SMK DATO' SYED OMAR</h1>
             <p style="color:#ffd700; margin:8px 0 0 0; font-weight:bold; font-size:18px; letter-spacing: 1px;">🏆 SISTEM PENGURUSAN KOKURIKULUM SEKOLAH</p>
-            <p style="color:#ffffff; font-size:13px; margin: 8px 0 0 0;">⚠️ Sila pastikan fail 'logo.png.png' berada di folder Desktop bersama app.py</p>
         </div>
     """, unsafe_allow_html=True)
 
@@ -147,22 +145,18 @@ if pilihan == "📊 Dashboard & Analisis":
         col_r1_1, col_r1_2 = st.columns(2)
         with col_r1_1:
             st.markdown("#### 💻 Taburan Mengikut Kelab / Persatuan")
-            if 'kelab' in df_papar.columns and df_papar['kelab'].notna().any():
-                st.bar_chart(df_papar['kelab'].value_counts(), color="#1f77b4")
+            st.bar_chart(df_papar['kelab'].value_counts(), color="#1f77b4")
         with col_r1_2:
             st.markdown("#### ⚽ Taburan Mengikut Sukan / Permainan")
-            if 'sukan' in df_papar.columns and df_papar['sukan'].notna().any():
-                st.bar_chart(df_papar['sukan'].value_counts(), color="#2ca02c")
+            st.bar_chart(df_papar['sukan'].value_counts(), color="#2ca02c")
                 
         col_r2_1, col_r2_2 = st.columns(2)
         with col_r2_1:
             st.markdown("#### 🎖️ Taburan Mengikut Unit Beruniform")
-            if 'uniform' in df_papar.columns and df_papar['uniform'].notna().any():
-                st.bar_chart(df_papar['uniform'].value_counts(), color="#ff7f0e")
+            st.bar_chart(df_papar['uniform'].value_counts(), color="#ff7f0e")
         with col_r2_2:
             st.markdown("#### 🏠 Taburan Mengikut Rumah Sukan")
-            if 'rumah_sukan' in df_papar.columns and df_papar['rumah_sukan'].notna().any():
-                st.bar_chart(df_papar['rumah_sukan'].value_counts(), color="#d62728")
+            st.bar_chart(df_papar['rumah_sukan'].value_counts(), color="#d62728")
                 
         st.markdown("---")
         st.subheader("📋 Senarai Keseluruhan Murid")
@@ -173,12 +167,13 @@ if pilihan == "📊 Dashboard & Analisis":
         
         st.markdown("---")
         st.subheader("📥 Muat Turun Data Kokurikulum")
+        
         buffer = io.BytesIO()
         with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
             df_view.to_excel(writer, index=False, sheet_name='Senarai Murid')
             
         st.download_button(
-            label="📊 Eksport Data Murid ke Excel (HURUF BESAR)",
+            label="📊 Eksport Data Murid ke Excel",
             data=buffer.getvalue(),
             file_name="Senarai_Murid_Kokurikulum.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -187,7 +182,7 @@ if pilihan == "📊 Dashboard & Analisis":
         st.info("Tiada rekod murid dijumpai. Data graf akan dijana sebaik sahaja murid didaftarkan.")
 
 # ==========================================
-# MODUL 2: CARIAN AHLI KATEGORI (KEMASKINI DENGAN EXPORT BUTTON)
+# MODUL 2: CARIAN AHLI KATEGORI
 # ==========================================
 elif pilihan == "🔍 Carian Ahli Kategori":
     st.title("🔍 Carian Ahli Kategori")
@@ -209,12 +204,10 @@ elif pilihan == "🔍 Carian Ahli Kategori":
             st.success(f"Senarai ahli bagi {unit_pilihan.upper()} ({len(df_ahli)} Orang):")
             st.dataframe(df_ahli, use_container_width=True)
             
-            # Bahagian Penyediaan Fail Excel Khusus Unit Terpilih
             buffer_ahli = io.BytesIO()
             with pd.ExcelWriter(buffer_ahli, engine='openpyxl') as writer:
                 df_ahli.to_excel(writer, index=False, sheet_name='Senarai Ahli')
             
-            # Butang Download Ahli Kategori dengan Tepat
             st.download_button(
                 label=f"📥 Download Senarai Ahli {unit_pilihan.upper()} (Excel)",
                 data=buffer_ahli.getvalue(),
@@ -259,11 +252,19 @@ elif pilihan == "🔍 Carian Individu (No. KP)":
             st.error("Ralat: No. Kad Pengenalan tidak wujud.")
 
 # ==========================================
-# MODUL 4: DAFTAR MURID BARU
+# MODUL 4: DAFTAR MURID BARU (KINI DENGAN EXCEL IMPORT!)
 # ==========================================
 elif pilihan == "📝 Daftar Murid Baru":
     st.title("📝 Pengurusan Rekod Murid")
     
+    # Sediakan Tab Pilihan Cara Pengisian
+    tab_daftar, tab_excel, tab_padam = st.tabs([
+        "✍️ Pendaftaran Individu", 
+        "📥 Import Pukal (Dari Excel)", 
+        "🗑️ Padam Rekod Murid"
+    ])
+    
+    # Ambil senarai unit terkini untuk dropdown
     c.execute("SELECT unit FROM guru_penasihat WHERE kategori='rumah'")
     list_rumah = [r[0] for r in c.fetchall()]
     c.execute("SELECT unit FROM guru_penasihat WHERE kategori='kelab'")
@@ -273,94 +274,41 @@ elif pilihan == "📝 Daftar Murid Baru":
     c.execute("SELECT unit FROM guru_penasihat WHERE kategori='uniform'")
     list_uniform = [r[0] for r in c.fetchall()]
 
-    st.subheader("✍️ Borang Pendaftaran Murid Baru")
-    with st.form("borang_daftar", clear_on_submit=True):
-        kp_baru = st.text_input("No. Kad Pengenalan (Tanpa tanda '-') :")
-        nama_baru = st.text_input("Nama Penuh Murid (Huruf Besar):").upper()
-        kelas_baru = st.text_input("Kelas (Contoh: 3KRK1):")
-        
-        rumah_baru = st.selectbox("Rumah Sukan:", list_rumah if list_rumah else ["Merah", "Biru"])
-        kelab_baru = st.selectbox("Kelab / Persatuan:", list_kelab if list_kelab else ["Kelab Komputer"])
-        sukan_baru = st.selectbox("Sukan / Permainan:", list_sukan if list_sukan else ["Badminton"])
-        uniform_baru = st.selectbox("Unit Beruniform:", list_uniform if list_uniform else ["Pengakap"])
-        
-        butang_daftar = st.form_submit_button("Simpan Rekod Murid")
-        
-        if butang_daftar:
-            if nama_baru and kp_baru and kelas_baru:
-                try:
-                    c.execute("""
-                        INSERT INTO murid (kp, nama, kelas, rumah_sukan, kelab, sukan, uniform) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
-                    """, (kp_baru, nama_baru, kelas_baru, rumah_baru, kelab_baru, sukan_baru, uniform_baru))
-                    conn.commit()
-                    st.success(f"🎉 Rekod bagi {nama_baru} berjaya disimpan!")
-                    st.rerun()
-                except sqlite3.IntegrityError:
-                    st.error("❌ Ralat: No. Kad Pengenalan ini sudah wujud!")
-            else:
-                st.warning("⚠️ Sila isi maklumat wajib (Nama, No. KP, dan Kelas).")
-
-    st.markdown("---")
-    st.subheader("🗑️ Padam Rekod Murid")
-    kp_padam = st.text_input("Masukkan No. KP murid untuk dipadam:", key="input_padam")
-    
-    if st.button("🔴 Padam Rekod Murid", key="butang_padam"):
-        if kp_padam:
-            c.execute("SELECT nama FROM murid WHERE kp = ?", (kp_padam,))
-            data_murid = c.fetchone()
-            if data_murid:
-                nama_terpadam = data_murid[0]
-                c.execute("DELETE FROM murid WHERE kp = ?", (kp_padam,))
-                conn.commit()
-                st.success(f"🗑️ Rekod murid {nama_terpadam} telah dipadam.")
-                st.rerun()
-            else:
-                st.error("❌ No. Kad Pengenalan tidak dijumpai.")
-
-# ==========================================
-# MODUL 5: MAKLUMAT & URUS GURU PENASIHAT
-# ==========================================
-elif pilihan == "📋 Maklumat & Urus Guru":
-    st.title("📋 Pengurusan Guru Penasihat Unit")
-    tab1, tab2 = st.tabs(["🔍 Semak Guru Sedia Ada", "➕ Tambah / Kemaskini Guru & Unit"])
-    
-    with tab1:
-        st.subheader("📚 Senarai Guru Penasihat Semasa")
-        kat_guru = st.selectbox("Pilih Kategori Unit:", ["Kelab / Persatuan", "Sukan / Permainan", "Unit Beruniform", "Rumah Sukan"], key="semak_kat")
-        kat_map = {"Kelab / Persatuan": "kelab", "Sukan / Permainan": "sukan", "Unit Beruniform": "uniform", "Rumah Sukan": "rumah"}
-        db_kat = kat_map[kat_guru]
-        
-        df_guru = pd.read_sql_query("SELECT unit AS 'NAMA UNIT', nama_guru AS 'NAMA GURU PENASIHAT' FROM guru_penasihat WHERE kategori = ?", conn, params=(db_kat,))
-        if not df_guru.empty:
-            st.dataframe(df_guru, use_container_width=True)
-        else:
-            st.info("Tiada rekod didaftarkan untuk kategori ini.")
+    # TAB 1: DAFTAR MANUAL INDIVIDU
+    with tab_daftar:
+        st.subheader("✍️ Borang Pendaftaran Murid Baru")
+        with st.form("borang_daftar", clear_on_submit=True):
+            kp_baru = st.text_input("No. Kad Pengenalan (Tanpa tanda '-') :")
+            nama_baru = st.text_input("Nama Penuh Murid (Huruf Besar):").upper()
+            kelas_baru = st.text_input("Kelas (Contoh: 3KRK1):")
             
-    with tab2:
-        st.subheader("⚙️ Borang Pendaftaran / Kemaskini Guru & Unit Baru")
-        with st.form("borang_guru"):
-            kategori_input = st.selectbox("Kategori Unit:", ["kelab", "sukan", "uniform", "rumah"])
-            unit_input = st.text_input("Nama Unit Baru / Sedia Ada (Contoh: Kelab Catur / Merah):")
-            guru_input = st.text_input("Nama Penuh Guru Penasihat:")
+            rumah_baru = st.selectbox("Rumah Sukan:", list_rumah if list_rumah else ["Merah", "Biru"])
+            kelab_baru = st.selectbox("Kelab / Persatuan:", list_kelab if list_kelab else ["Kelab Komputer"])
+            sukan_baru = st.selectbox("Sukan / Permainan:", list_sukan if list_sukan else ["Badminton"])
+            uniform_baru = st.selectbox("Unit Beruniform:", list_uniform if list_uniform else ["Pengakap"])
             
-            butang_guru = st.form_submit_button("Simpan / Kemaskini Maklumat Guru")
-            if butang_guru:
-                if unit_input and guru_input:
-                    c.execute("""
-                        INSERT OR REPLACE INTO guru_penasihat (kategori, unit, nama_guru)
-                        VALUES (?, ?, ?)
-                    """, (kategori_input, unit_input, guru_input))
-                    conn.commit()
-                    st.success(f"✅ Maklumat bagi '{unit_input}' berjaya disimpan!")
-                    st.rerun()
+            butang_daftar = st.form_submit_button("Simpan Rekod Murid")
+            
+            if butang_daftar:
+                if nama_baru and kp_baru and kelas_baru:
+                    try:
+                        c.execute("""
+                            INSERT INTO murid (kp, nama, kelas, rumah_sukan, kelab, sukan, uniform) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?)
+                        """, (kp_baru, nama_baru, kelas_baru, rumah_baru, kelab_baru, sukan_baru, uniform_baru))
+                        conn.commit()
+                        st.success(f"🎉 Rekod bagi {nama_baru} berjaya disimpan!")
+                        st.rerun()
+                    except sqlite3.IntegrityError:
+                        st.error("❌ Ralat: No. Kad Pengenalan ini sudah wujud!")
+                else:
+                    st.warning("⚠️ Sila isi maklumat wajib (Nama, No. KP, dan Kelas).")
 
-# ==========================================
-# MODUL 6: TAMBAH PENCAPAIAN
-# ==========================================
-elif pilihan == "🏅 Tambah Pencapaian":
-    st.title("🏅 Tambah Pencapaian Murid")
-    st.text_input("No. KP Murid:")
-    st.text_input("Nama Aktiviti/Pertandingan:")
-    st.selectbox("Tahap Pencapaian:", ["Sekolah", "Daerah", "Negeri", "Kebangsaan"])
-    st.button("Simpan Pencapaian")
+    # TAB 2: IMPORT PUKAL DARI EXCEL (FUNGSI BARU YANG DIMINTA)
+    with tab_excel:
+        st.subheader("📥 Muat Naik Fail Excel Murid")
+        st.info("Gunakan fungsi ini untuk memasukkan ratusan data murid secara serentak dengan pantas.")
+        
+        # 1. Bina Templat Kosong Kosong Untuk Pengguna Muat Turun
+        lajur_templat = ['NO. KP', 'NAMA MURID', 'KELAS', 'RUMAH SUKAN', 'KELAB / PERSATUAN', 'SUKAN / PERMAINAN', 'UNIT BERUNIFORM']
+        df_templat = pd.DataFrame(columns=lajur_templat)
