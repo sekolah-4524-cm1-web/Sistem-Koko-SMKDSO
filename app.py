@@ -73,7 +73,7 @@ if not logo_b64:
 # ==========================================
 st.set_page_config(page_title="Sistem Kokurikulum SMK DSU", layout="wide")
 
-# Banner Utama Sekolah
+# Banner Utama Sekolah (Termasuk Hak Milik Dr Mohd Zairol Yusoff)
 if logo_b64:
     st.markdown(f"""
         <div style="background-color:#1f77b4; padding:30px; border-radius:12px; margin-bottom:25px; border-left: 10px solid #ffd700; display: flex; align-items: center; justify-content: flex-start; gap: 35px;">
@@ -81,6 +81,7 @@ if logo_b64:
             <div style="text-align: left;">
                 <h1 style="color:white; margin:0; font-family:sans-serif; letter-spacing: 2px; font-size:38px; font-weight: bold;">SMK DATO' SYED OMAR</h1>
                 <p style="color:#ffd700; margin:8px 0 0 0; font-weight:bold; font-size:18px; letter-spacing: 1px;">🏆 SISTEM PENGURUSAN KOKURIKULUM SEKOLAH</p>
+                <p style="color:#ffffff; margin:6px 0 0 0; font-size:13px; font-style:italic; opacity:0.9;">🔒 Hak Milik: Dr Mohd Zairol Yusoff</p>
             </div>
         </div>
     """, unsafe_allow_html=True)
@@ -89,6 +90,7 @@ else:
         <div style="background-color:#1f77b4; padding:25px; border-radius:12px; margin-bottom:25px; border-left: 8px solid #ffd700; text-align: center;">
             <h1 style="color:white; margin:0; font-family:sans-serif; letter-spacing: 2px; font-size:36px; font-weight: bold;">SMK DATO' SYED OMAR</h1>
             <p style="color:#ffd700; margin:8px 0 0 0; font-weight:bold; font-size:18px; letter-spacing: 1px;">🏆 SISTEM PENGURUSAN KOKURIKULUM SEKOLAH</p>
+            <p style="color:#ffffff; margin:6px 0 0 0; font-size:13px; font-style:italic; opacity:0.9;">🔒 Hak Milik: Dr Mohd Zairol Yusoff</p>
         </div>
     """, unsafe_allow_html=True)
 
@@ -117,6 +119,14 @@ menu = [
 ]
 pilihan = st.sidebar.radio("Pilih Modul:", menu)
 st.sidebar.markdown("---")
+
+# Nota Hak Milik di bahagian bawah Sidebar
+st.sidebar.markdown("""
+    <div style="text-align: center; color: #888888; font-size: 12px; padding-top: 10px;">
+        🔒 <b>Hak Milik Terpelihara</b><br>
+        Dr Mohd Zairol Yusoff
+    </div>
+""", unsafe_allow_html=True)
 
 # ==========================================
 # MODUL 1: DASHBOARD & ANALISIS
@@ -257,14 +267,12 @@ elif pilihan == "🔍 Carian Individu (No. KP)":
 elif pilihan == "📝 Daftar Murid Baru":
     st.title("📝 Pengurusan Rekod Murid")
     
-    # 📌 INI ADALAH BAHAGIAN TAB. Pastikan anda klik pada tab-tab ini di laman web nanti.
     tab_daftar, tab_excel, tab_padam = st.tabs([
         "✍️ Pendaftaran Individu", 
         "📥 Import Pukal (Dari Excel)", 
         "🗑️ Padam Rekod Murid"
     ])
     
-    # Ambil senarai unit terkini untuk dropdown
     c.execute("SELECT unit FROM guru_penasihat WHERE kategori='rumah'")
     list_rumah = [r[0] for r in c.fetchall()]
     c.execute("SELECT unit FROM guru_penasihat WHERE kategori='kelab'")
@@ -274,9 +282,7 @@ elif pilihan == "📝 Daftar Murid Baru":
     c.execute("SELECT unit FROM guru_penasihat WHERE kategori='uniform'")
     list_uniform = [r[0] for r in c.fetchall()]
 
-    # ==============================
     # TAB 1: Pendaftaran Individu
-    # ==============================
     with tab_daftar:
         st.subheader("✍️ Borang Pendaftaran Murid Baru")
         with st.form("borang_daftar", clear_on_submit=True):
@@ -305,14 +311,11 @@ elif pilihan == "📝 Daftar Murid Baru":
                 else:
                     st.warning("⚠️ Sila isi maklumat wajib (Nama, No. KP, dan Kelas).")
 
-    # ==============================
     # TAB 2: Import Pukal Excel
-    # ==============================
     with tab_excel:
         st.subheader("📥 Muat Naik Fail Excel Murid")
         st.info("Gunakan fungsi ini untuk memasukkan ratusan data murid secara serentak dengan pantas.")
         
-        # Butang muat turun templat
         lajur_templat = ['NO. KP', 'NAMA MURID', 'KELAS', 'RUMAH SUKAN', 'KELAB / PERSATUAN', 'SUKAN / PERMAINAN', 'UNIT BERUNIFORM']
         df_templat = pd.DataFrame(columns=lajur_templat)
         df_templat.loc[0] = ['050102020304', 'AMIRUL BIN ASHRAF', '4 CEKAL', 'Merah', 'Kelab Komputer', 'Badminton', 'Pengakap']
@@ -322,7 +325,7 @@ elif pilihan == "📝 Daftar Murid Baru":
             df_templat.to_excel(writer, index=False, sheet_name='Template_Murid')
             
         st.download_button(
-            label="📄 1. Muat Turun Templat Excel (Format Betul)",
+            label="📄 1. Muat Tunun Templat Excel (Format Betul)",
             data=buffer_temp.getvalue(),
             file_name="Templat_Kemasukan_Murid.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -330,7 +333,6 @@ elif pilihan == "📝 Daftar Murid Baru":
         
         st.markdown("---")
         
-        # Kotak Muat Naik Fail
         fail_uploaded = st.file_uploader("📂 2. Pilih & Muat Naik Fail Excel Yang Telah Disiapkan (.xlsx)", type=["xlsx"])
         
         if fail_uploaded is not None:
@@ -342,7 +344,6 @@ elif pilihan == "📝 Daftar Murid Baru":
                     st.success("Fail berjaya dibaca! Berikut adalah pratonton data sebelum disimpan:")
                     st.dataframe(df_excel, use_container_width=True)
                     
-                    # Butang sahkan
                     if st.button("🚀 Sahkan & Masukkan Semua Data Ke Sistem"):
                         jumlah_berjaya = 0
                         jumlah_ralat = 0
@@ -374,9 +375,7 @@ elif pilihan == "📝 Daftar Murid Baru":
             except Exception as e:
                 st.error(f"Sila pasang library 'openpyxl' (Taip: pip install openpyxl di Terminal/CMD) terlebih dahulu.")
 
-    # ==============================
     # TAB 3: Padam Rekod Murid
-    # ==============================
     with tab_padam:
         st.subheader("🗑️ Padam Rekod Murid Keseluruhan")
         kp_padam = st.text_input("Masukkan No. KP murid untuk dipadam:", key="input_padam")
@@ -390,3 +389,54 @@ elif pilihan == "📝 Daftar Murid Baru":
                     c.execute("DELETE FROM murid WHERE kp = ?", (kp_padam,))
                     conn.commit()
                     st.success(f"🗑️ Rekod murid {nama_terpadam} telah dipadam.")
+                else:
+                    st.error("❌ No. Kad Pengenalan tidak dijumpai.")
+            else:
+                st.warning("Sila masukkan No KP terlebih dahulu.")
+
+# ==========================================
+# MODUL 5: MAKLUMAT & URUS GURU PENASIHAT
+# ==========================================
+elif pilihan == "📋 Maklumat & Urus Guru":
+    st.title("📋 Pengurusan Guru Penasihat Unit")
+    tab1, tab2 = st.tabs(["🔍 Semak Guru Sedia Ada", "➕ Tambah / Kemaskini Guru & Unit"])
+    
+    with tab1:
+        st.subheader("📚 Senarai Guru Penasihat Semasa")
+        kat_guru = st.selectbox("Pilih Kategori Unit:", ["Kelab / Persatuan", "Sukan / Permainan", "Unit Beruniform", "Rumah Sukan"], key="semak_kat")
+        kat_map = {"Kelab / Persatuan": "kelab", "Sukan / Permainan": "sukan", "Unit Beruniform": "uniform", "Rumah Sukan": "rumah"}
+        db_kat = kat_map[kat_guru]
+        
+        df_guru = pd.read_sql_query("SELECT unit AS 'NAMA UNIT', nama_guru AS 'NAMA GURU PENASIHAT' FROM guru_penasihat WHERE kategori = ?", conn, params=(db_kat,))
+        if not df_guru.empty:
+            st.dataframe(df_guru, use_container_width=True)
+        else:
+            st.info("Tiada rekod didaftarkan untuk kategori ini.")
+            
+    with tab2:
+        st.subheader("⚙️ Borang Pendaftaran / Kemaskini Guru & Unit Baru")
+        with st.form("borang_guru"):
+            kategori_input = st.selectbox("Kategori Unit:", ["kelab", "sukan", "uniform", "rumah"])
+            unit_input = st.text_input("Nama Unit Baru / Sedia Ada (Contoh: Kelab Catur / Merah):")
+            guru_input = st.text_input("Nama Penuh Guru Penasihat:")
+            
+            butang_guru = st.form_submit_button("Simpan / Kemaskini Maklumat Guru")
+            if butang_guru:
+                if unit_input and guru_input:
+                    c.execute("""
+                        INSERT OR REPLACE INTO guru_penasihat (kategori, unit, nama_guru)
+                        VALUES (?, ?, ?)
+                    """, (kategori_input, unit_input, guru_input))
+                    conn.commit()
+                    st.success(f"✅ Maklumat bagi '{unit_input}' berjaya disimpan!")
+                    st.rerun()
+
+# ==========================================
+# MODUL 6: TAMBAH PENCAPAIAN
+# ==========================================
+elif pilihan == "🏅 Tambah Pencapaian":
+    st.title("🏅 Tambah Pencapaian Murid")
+    st.text_input("No. KP Murid:")
+    st.text_input("Nama Aktiviti/Pertandingan:")
+    st.selectbox("Tahap Pencapaian:", ["Sekolah", "Daerah", "Negeri", "Kebangsaan"])
+    st.button("Simpan Pencapaian")
