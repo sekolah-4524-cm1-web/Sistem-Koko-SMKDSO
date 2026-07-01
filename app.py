@@ -11,7 +11,7 @@ import base64
 conn = sqlite3.connect('kokurikulum.db')
 c = conn.cursor()
 
-# 1. Cipta jadual murid (7 Lajur Tepat)
+# 1. Cipta jadual murid
 c.execute('''
     CREATE TABLE IF NOT EXISTS murid (
         kp TEXT PRIMARY KEY NOT NULL,
@@ -73,7 +73,7 @@ if not logo_b64:
 # ==========================================
 st.set_page_config(page_title="Sistem Kokurikulum SMK DSU", layout="wide")
 
-# Banner Utama Sekolah Bersama Logo
+# Banner Utama Sekolah
 if logo_b64:
     st.markdown(f"""
         <div style="background-color:#1f77b4; padding:30px; border-radius:12px; margin-bottom:25px; border-left: 10px solid #ffd700; display: flex; align-items: center; justify-content: flex-start; gap: 35px;">
@@ -252,12 +252,12 @@ elif pilihan == "🔍 Carian Individu (No. KP)":
             st.error("Ralat: No. Kad Pengenalan tidak wujud.")
 
 # ==========================================
-# MODUL 4: DAFTAR MURID BARU (KINI DENGAN EXCEL IMPORT!)
+# MODUL 4: DAFTAR MURID BARU, IMPORT & PADAM (SISTEM TAB)
 # ==========================================
 elif pilihan == "📝 Daftar Murid Baru":
     st.title("📝 Pengurusan Rekod Murid")
     
-    # Sediakan Tab Pilihan Cara Pengisian
+    # 📌 INI ADALAH BAHAGIAN TAB. Pastikan anda klik pada tab-tab ini di laman web nanti.
     tab_daftar, tab_excel, tab_padam = st.tabs([
         "✍️ Pendaftaran Individu", 
         "📥 Import Pukal (Dari Excel)", 
@@ -274,7 +274,9 @@ elif pilihan == "📝 Daftar Murid Baru":
     c.execute("SELECT unit FROM guru_penasihat WHERE kategori='uniform'")
     list_uniform = [r[0] for r in c.fetchall()]
 
-    # TAB 1: DAFTAR MANUAL INDIVIDU
+    # ==============================
+    # TAB 1: Pendaftaran Individu
+    # ==============================
     with tab_daftar:
         st.subheader("✍️ Borang Pendaftaran Murid Baru")
         with st.form("borang_daftar", clear_on_submit=True):
@@ -298,17 +300,93 @@ elif pilihan == "📝 Daftar Murid Baru":
                         """, (kp_baru, nama_baru, kelas_baru, rumah_baru, kelab_baru, sukan_baru, uniform_baru))
                         conn.commit()
                         st.success(f"🎉 Rekod bagi {nama_baru} berjaya disimpan!")
-                        st.rerun()
                     except sqlite3.IntegrityError:
                         st.error("❌ Ralat: No. Kad Pengenalan ini sudah wujud!")
                 else:
                     st.warning("⚠️ Sila isi maklumat wajib (Nama, No. KP, dan Kelas).")
 
-    # TAB 2: IMPORT PUKAL DARI EXCEL (FUNGSI BARU YANG DIMINTA)
+    # ==============================
+    # TAB 2: Import Pukal Excel
+    # ==============================
     with tab_excel:
         st.subheader("📥 Muat Naik Fail Excel Murid")
         st.info("Gunakan fungsi ini untuk memasukkan ratusan data murid secara serentak dengan pantas.")
         
-        # 1. Bina Templat Kosong Kosong Untuk Pengguna Muat Turun
+        # Butang muat turun templat
         lajur_templat = ['NO. KP', 'NAMA MURID', 'KELAS', 'RUMAH SUKAN', 'KELAB / PERSATUAN', 'SUKAN / PERMAINAN', 'UNIT BERUNIFORM']
         df_templat = pd.DataFrame(columns=lajur_templat)
+        df_templat.loc[0] = ['050102020304', 'AMIRUL BIN ASHRAF', '4 CEKAL', 'Merah', 'Kelab Komputer', 'Badminton', 'Pengakap']
+        
+        buffer_temp = io.BytesIO()
+        with pd.ExcelWriter(buffer_temp, engine='openpyxl') as writer:
+            df_templat.to_excel(writer, index=False, sheet_name='Template_Murid')
+            
+        st.download_button(
+            label="📄 1. Muat Turun Templat Excel (Format Betul)",
+            data=buffer_temp.getvalue(),
+            file_name="Templat_Kemasukan_Murid.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        
+        st.markdown("---")
+        
+        # Kotak Muat Naik Fail
+        fail_uploaded = st.file_uploader("📂 2. Pilih & Muat Naik Fail Excel Yang Telah Disiapkan (.xlsx)", type=["xlsx"])
+        
+        if fail_uploaded is not None:
+            try:
+                df_excel = pd.read_excel(fail_uploaded)
+                
+                if len(df_excel.columns) == 7:
+                    df_excel.columns = ['kp', 'nama', 'kelas', 'rumah_sukan', 'kelab', 'sukan', 'uniform']
+                    st.success("Fail berjaya dibaca! Berikut adalah pratonton data sebelum disimpan:")
+                    st.dataframe(df_excel, use_container_width=True)
+                    
+                    # Butang sahkan
+                    if st.button("🚀 Sahkan & Masukkan Semua Data Ke Sistem"):
+                        jumlah_berjaya = 0
+                        jumlah_ralat = 0
+                        
+                        for index, row in df_excel.iterrows():
+                            kp_str = str(row['kp']).strip().replace('.0', '')
+                            nama_str = str(row['nama']).strip().upper()
+                            kelas_str = str(row['kelas']).strip()
+                            
+                            if kp_str == 'nan' or nama_str == 'nan':
+                                continue
+                                
+                            try:
+                                c.execute("""
+                                    INSERT OR REPLACE INTO murid (kp, nama, kelas, rumah_sukan, kelab, sukan, uniform)
+                                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                                """, (kp_str, nama_str, kelas_str, str(row['rumah_sukan']), str(row['kelab']), str(row['sukan']), str(row['uniform'])))
+                                jumlah_berjaya += 1
+                            except Exception:
+                                jumlah_ralat += 1
+                                
+                        conn.commit()
+                        st.balloons()
+                        st.success(f"✅ Berjaya import pukal: {jumlah_berjaya} rekod murid telah dimasukkan/dikemaskini!")
+                        if jumlah_ralat > 0:
+                            st.warning(f"⚠️ {jumlah_ralat} rekod gagal dimasukkan kerana isu format data.")
+                else:
+                    st.error(f"❌ Ralat Format Fail: Fail mempunyai {len(df_excel.columns)} lajur. Fail mestilah mempunyai tepat 7 lajur mengikut templat yang disediakan.")
+            except Exception as e:
+                st.error(f"Sila pasang library 'openpyxl' (Taip: pip install openpyxl di Terminal/CMD) terlebih dahulu.")
+
+    # ==============================
+    # TAB 3: Padam Rekod Murid
+    # ==============================
+    with tab_padam:
+        st.subheader("🗑️ Padam Rekod Murid Keseluruhan")
+        kp_padam = st.text_input("Masukkan No. KP murid untuk dipadam:", key="input_padam")
+        
+        if st.button("🔴 Padam Rekod Murid", key="butang_padam"):
+            if kp_padam:
+                c.execute("SELECT nama FROM murid WHERE kp = ?", (kp_padam,))
+                data_murid = c.fetchone()
+                if data_murid:
+                    nama_terpadam = data_murid[0]
+                    c.execute("DELETE FROM murid WHERE kp = ?", (kp_padam,))
+                    conn.commit()
+                    st.success(f"🗑️ Rekod murid {nama_terpadam} telah dipadam.")
