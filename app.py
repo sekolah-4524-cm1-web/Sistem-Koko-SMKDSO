@@ -389,7 +389,7 @@ elif pilihan == "📝 Daftar Murid Baru":
 # ==========================================
 elif pilihan == "📋 Maklumat & Urus Guru":
     st.title("📋 Pengurusan Guru Penasihat Unit")
-    tab1, tab2 = st.tabs(["🔍 Semak Guru Sedia Ada", "➕ Tambah / Kemaskini Guru & Unit"])
+    tab1, tab2, tab3 = st.tabs(["🔍 Semak Guru Sedia Ada", "➕ Tambah / Kemaskini", "🗑️ Padam Maklumat"])
     
     with tab1:
         st.subheader("📚 Senarai Guru Penasihat Semasa")
@@ -418,9 +418,27 @@ elif pilihan == "📋 Maklumat & Urus Guru":
                         VALUES (?, ?, ?)
                     """, (kategori_input, unit_input, guru_input))
                     conn.commit()
-                    st.success(f"✅ Maklumat bagi '{unit_input}' berjaya disimpan!")
+                    st.success(f"✅ Maklumat bagi '{unit_input}' berjaya disimpan/dikemaskini!")
                     st.rerun()
 
+    with tab3:
+        st.subheader("🗑️ Padam Unit & Guru Penasihat")
+        st.warning("Nota: Tindakan ini akan membuang terus nama unit dan guru penasihat dari senarai sistem.")
+        
+        # Ambil senarai semua unit yang ada untuk dipadam
+        c.execute("SELECT unit FROM guru_penasihat")
+        senarai_semua_unit = [r[0] for r in c.fetchall()]
+        
+        if senarai_semua_unit:
+            unit_padam = st.selectbox("Pilih Unit yang ingin dipadam:", senarai_semua_unit)
+            
+            if st.button("🔴 Padam Maklumat Ini"):
+                c.execute("DELETE FROM guru_penasihat WHERE unit = ?", (unit_padam,))
+                conn.commit()
+                st.success(f"🗑️ Maklumat bagi unit '{unit_padam}' telah berjaya dipadam!")
+                st.rerun()
+        else:
+            st.info("Tiada rekod unit/guru dijumpai.")
 # ==========================================
 # MODUL 6: TAMBAH PENCAPAIAN
 # ==========================================
